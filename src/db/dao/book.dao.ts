@@ -1,25 +1,46 @@
 import { Document, Types,  } from 'mongoose';
-import Book from '../schemas/books.schema';
-import { IBook } from '../schemas/books.schema';
+import Book, { IBook } from '../schemas/books.schema';
+import Author, { IAuthor } from '../schemas/authors.schema';
+import { Book as TBook } from '../../types/types';
 
-async function saveBookDB (bookData: IBook): Promise<Document<unknown, any, IBook>> {
-  const book = new Book();
-  const {id, title, chapters, pages} = bookData;
+async function saveBookDB (bookData: TBook): Promise<Document<unknown, any, TBook>> {
 
-  book.id = id;
-  book.title = title;
-  book.chapters = chapters;
-  book.pages = pages;
+  const {title, chapters, pages, author: authorId} = bookData;
 
-  return book.save();
+  const author: IAuthor | null = await Author.findById(authorId);
+
+  if (!author) {
+    throw new Error(`Author with ID ${authorId} not found`);
+  }
+
+  const book: IBook = new Book({
+    title,
+    chapters,
+    pages,
+    author: authorId,
+  });
+
+  await book.save();
+
+  author.books.push(book._id);
+  await author.save();
+
+  return book;
+
 }
 
 async function getBooks (): 
-  Promise<(Document<unknown, any, IBook> & IBook & {_id: Types.ObjectId;})[]> {
-  return Book.find();
+  Promise<(Document<unknown, any, TBook> & TBook & {_id: Types.ObjectId;})[]> {
+  return Book.find().populate('author', 'name');
+}
+
+async function getBook (id: Types.ObjectId): 
+  Promise<(Document<unknown, any, TBook> & TBook & {_id: Types.ObjectId;}) | null> {
+  return Book.findById(id);
 }
 
 export {
   saveBookDB,
   getBooks,
+  getBook
 }

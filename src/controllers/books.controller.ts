@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { saveBook, getAllBooks, getAveragePagesPerChapter } from '../services/books.service';
-import { IBook } from '../db/schemas/books.schema';
+import { Book } from '../types/types';
 
 async function saveBookController(req: Request, res: Response) {
   try {
 
-    const { id, title, chapters, pages} = req.body;
-    const bookData: IBook = { id, title, chapters, pages };
+    const { title, chapters, pages, author } = req.body;
+
+    const bookData:Book = { title, chapters, pages, author };
 
     const bookDB = await saveBook(bookData);
 
@@ -31,7 +33,9 @@ async function getAllBooksController(req: Request, res: Response) {
 
 async function getAveragePagesPerChapterController(req: Request, res: Response) {
   try {
-    const average = await getAveragePagesPerChapter();
+    const bookId = req.params?.id;
+
+    const average = await getAveragePagesPerChapter(bookId as unknown as Types.ObjectId);
     
     return res.status(200).send({average});
     

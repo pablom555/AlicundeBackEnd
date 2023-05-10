@@ -8,10 +8,10 @@ const booksRoutes: Router = Router();
 // Save a Book
 booksRoutes.post('/', saveBookController);
 
-// Get all holidays
+// Get all books
 booksRoutes.get('/', getAllBooksController);
 
-// Get Average Chapter per Page
-booksRoutes.get('/average-page-per-chapter', getAveragePagesPerChapterController);
+// Get Average Page per Chapter
+booksRoutes.get('/average-page-per-chapter/:id', getAveragePagesPerChapterController);
 
 export default booksRoutes;
